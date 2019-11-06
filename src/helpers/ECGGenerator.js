@@ -26,7 +26,7 @@ export default class ECGGenerator {
 	 * @param {number} derivationIndex The index of the derivation to get the value of
 	 */
 	getValue( derivationIndex = 0 ) {
-		return 0;
+		return Math.sin(this.time/10) * 80;
 	}
 
 	/**
