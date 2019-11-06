@@ -1,0 +1,61 @@
+.statusBar {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100vw;
+	margin: 0;
+	height: 30px;
+	background-color: #dddddd;
+	color: #424242;
+	margin: 0;
+	padding: 0 10px;
+	z-index: 5;
+
+	span {
+		display: inline-block;
+		cursor: pointer;
+		height: 30px;
+		padding: 0 10px;
+		line-height: 30px;
+		margin-right: 1em;
+
+		&:hover {
+			background-color: rgba(0,0,0,0.15);
+		}
+		div {
+			display: inline;
+		}
+	}
+}
+
+
+.dropUp {
+	position: absolute;
+	float: left;
+	background-color: #dddddd;
+	color: #6e6e6e;
+	margin-left: -195px;
+	bottom: 30px;
+	-webkit-box-shadow: 3px 3px 4px -2px rgba(0,0,0,0.46);
+	-moz-box-shadow: 3px 3px 4px -2px rgba(0,0,0,0.46);
+	box-shadow: 3px 3px 4px -2px rgba(0,0,0,0.46);
+
+	.option {
+		font-size: 12pt;
+		display: block;
+		box-sizing: border-box;;
+		width: 100%;
+		padding: 0 10px;
+		margin: 0;
+		&:hover {
+			background-color: #b3b3b3;
+		}
+
+	}
+}
+
+
+.lblFps{
+	float: right;
+	pointer-events: none;
+}

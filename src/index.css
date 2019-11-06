@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
 
+*:focus {
+  outline: none;
+}
+*::selection {
+  background-color: transparent;
+}
 body {
   font-family: 'Open Sans', sans-serif;
 }

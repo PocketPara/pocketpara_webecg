@@ -1,6 +1,38 @@
 const DefaultState = {
 	_stateTimestamp: Date.now(),
-	isPlaying: false
+	/*
+	 *	ECG Data 
+	 */
+	isPlaying: false,
+	fps: 0,
+	ecgDisplay: {
+		derivationNames: [
+			'I',		'II',		'III',
+			'aVL', 	'aVR', 	'aVF',
+			'V1', 'V2', 'V3', 'V4', 'V5', 'V6'
+		],
+		// Amount of pixels to have as margins
+		horizontalPadding: 50,
+		verticalPadding: 50,
+		textVerticalOffset: -10,
+		// The width of the "clear" ruler
+		rulerWidth: 5
+	},
+	// Generated automatically
+	ecgRuntimeVariables: {},
+	/*
+	*		Status Bar (on the bottom)
+	*/
+	statusBar: {
+		txtStatus: 'OK',
+		icoStatus: 'info',
+		// Display type, defines which type of leads are displayed
+		// 0 -> 4-Channel ECG
+		// 1 -> 12-Channel ECG
+		displayType: 1,
+		// Speed in mm/sec
+		speed: 150
+	}
 };
 
 /**
@@ -13,24 +45,28 @@ export default class ECGState {
 		this._subscribers = [];
 
 		// Debug
-		window.getState = () => {
-			return this;
-		}
+		window.ecg = this;
 	}
 
 	/**
 	 * Adds a function that is called whenever a state update is performed
 	 * 
 	 * @param {function} callback The function that is called on updates
+	 * @param {string[]} filter A list of properties to listen on
+	 * @param {bool} initialCall If true, call the callback once registered
 	 * @returns {string} The id of the callback (needed for unsubscribing)
 	 */
-	subscribe( callback ) {
+	subscribe( callback, filter = [], initialCall = false ) {
 		const id = 'es_' + Date.now();
 
 		this._subscribers.push({
 			id: Date.now() + '_sub',
-			callback
+			callback,
+			filter
 		});
+		if(initialCall) {
+			callback(this._state, filter);
+		}
 
 		return id;
 	}
@@ -95,7 +131,18 @@ export default class ECGState {
 	 */
 	notifySubscribers( updatedProps = [] ) {
 		for(let sub of this._subscribers) {
-			sub.callback(this._state, updatedProps);
+			if(sub.filter.length > 0) {
+				// Only listening on proplist
+				for(let filterItem of sub.filter) {
+					if(updatedProps.includes(filterItem)) {
+						sub.callback(this._state, updatedProps);
+					}
+				}
+			} else {
+				// General subscription
+				sub.callback(this._state, updatedProps);
+			}
+			
 		}
 	}
 

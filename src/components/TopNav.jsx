@@ -8,10 +8,20 @@ export default class TopNav extends React.Component {
 		isPlaying: false
 	}
 
+	constructor(...props) {
+		super(...props);
+		// Subscribe to isPlaying
+		this.props.ecgState.subscribe( (state, updatedProps) => {
+			this.setState({ isPlaying: state.isPlaying });
+		}, ['isPlaying']);
+	}
+
 	handleTogglePlay = () => {
-		this.setState({
-			isPlaying: !this.state.isPlaying
+		const isPlaying = !this.props.ecgState.getState().isPlaying;
+		this.props.ecgState.setState({
+			isPlaying
 		});
+		this.setState({ isPlaying });
 	}
 
 	render() {

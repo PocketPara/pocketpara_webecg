@@ -1,6 +1,6 @@
 import React from 'react';
 import TopNav from './components/TopNav';
-import BottomNav from './components/BottomNav';
+import StatusBar from './components/StatusBar';
 import EcgPanel from './components/EcgPanel';
 import ECGState from './helpers/ECGState';
 
@@ -16,7 +16,7 @@ class App extends React.Component {
       
       <EcgPanel ecgState={this.state.ecgState} />
 
-      <BottomNav ecgState={this.state.ecgState} />
+      <StatusBar ecgState={this.state.ecgState} />
     </div>;
   }
 
