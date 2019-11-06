@@ -1,260 +1,214 @@
+import ECGGenerator from "./ECGGenerator";
+
+/**
+ * Handles drawing on the ecg
+ */
 export default class ECGRenderEngine {
 
-	constructor(ecgState) {
-		this.frames = 0;
-		this.time = 0;
-		this.lastcalledtime=null;
-		this.fps=0;
-		this.currentValues = [
-			0,0,0,
-			0,0,0,
-			0,0,0,0
-		];
+	constructor(state) {
+		// Keep access to the state
+		this.ecgstate = state;
+		/** Returns the current ecg state */
+		this.state = ()=>{ return state.getState(); };
 
-		this.ecgState = ecgState;
+		// The generator of the ecg
+		this.generator = new ECGGenerator(state);
+
+		// All values of the current ecg (equals the amount of pixels of a derivation's width)
+		this.values = [
+			[],[],[],						// I, II, III
+			[],[],[],						// aVL, aVR, aVF
+			[],[],[],[],[],[]		// V1 - V6
+		];
+		// The position of the ruler
+		this.rulerPosition = 0;
+
+		// Variables needed for rendering
+		this.variables = {};
+
+		// Get the canvas objects and the context references
 		this.canvas = document.getElementById('mainCanvas');
+		// The shadow canvas is used for drawing persistent objects that don't change
+		// when a new frame is created
+		this.shadowCanvas = document.getElementById('shadowCanvas');
+		
+		// Make the canvas fit the page
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight - 80;
-		this.shadowCanvas = document.getElementById('shadowCanvas');
 		this.shadowCanvas.width = window.innerWidth;
 		this.shadowCanvas.height = window.innerHeight - 80;
 
-		this.subscription = ecgState.subscribe( (state, propUpdate) => {
-			this.computeVariables(this.canvas);
-			this.renderOverlay(state.ecgRuntimeVariables);
-		}, ['statusBar', 'ecgDisplay'], true);
+		// Create the context
+		this.ctx = this.canvas.getContext('2d');
+		this.shadowCtx = this.shadowCanvas.getContext('2d');
 
-		ecgState.subscribe( (state, propUpdate) => {
-			this.renderFrame();
-		}, ['isPlaying'], );
+		// (may remove the lines below)
+		this.computeVariables();
 
+		this._renderWireFrames();
+		this.renderPersistentObjects();
 
-		setInterval(() => {
-			this.ecgState.setState({ fps: this.fps });
-		}, 100);
-	}
-
-
-	/**
-	 * Calculates variables, offsets ect
-	 */
-	computeVariables = (canvas) => {
-		let variables = {};
-		const displayType = this.ecgState.getState().statusBar.displayType;
-		const displayOptions = this.ecgState.getState().ecgDisplay;
-		// If its a valid ecg format
-		if(displayType >= 0) {
-
-			// 4-lead
-			if(displayType === 0) {
-				variables.derivationWidth = parseInt((canvas.width-2 * displayOptions.horizontalPadding) );
-			// 12-lead
-			} else if (displayType === 1) {
-				variables.derivationWidth = parseInt((canvas.width-(4 * displayOptions.horizontalPadding))/2 );
+		// Subscribe to changes of isPlaying
+		this.ecgstate.subscribe( (newState, updatedProps) => {
+			if(newState.isPlaying) {
+				// Draw the first frame
+				this.renderFrame();
 			}
-			
-			// The size of a derivation (window width/height minus all margins)
-			
-			variables.derivationHeight = parseInt((canvas.height-(2 * displayOptions.verticalPadding))/6 );
-
-			// The vertical columns
-			variables.columns = [
-				displayOptions.horizontalPadding,
-				variables.derivationWidth + 3 * displayOptions.horizontalPadding
-			];
-
-			// The horizontal columns
-			variables.rows = [
-				displayOptions.verticalPadding,
-				displayOptions.verticalPadding + 1 * variables.derivationHeight,
-				displayOptions.verticalPadding + 2 * variables.derivationHeight,
-				displayOptions.verticalPadding + 3 * variables.derivationHeight,
-				displayOptions.verticalPadding + 4 * variables.derivationHeight,
-				displayOptions.verticalPadding + 5 * variables.derivationHeight
-			];
-
-			variables.rowCenter = [];
-			// rowcenter....
-			for(let row of variables.rows) {
-				variables.rowCenter.push(parseInt(row + variables.derivationHeight/2))
-			}
-
-		}
-		// Set state
-		this.ecgState.setState({
-			ecgRuntimeVariables: variables
-		});
+		}, 'isPlaying', true);
 
 	}
 
-	renderOverlay = (variables) => {
-		let ctx = this.shadowCanvas.getContext('2d');
-		const displayType = this.ecgState.getState().statusBar.displayType;
-		const displayOptions = this.ecgState.getState().ecgDisplay;
-
-		ctx.clearRect(0,0,this.shadowCanvas.width, this.shadowCanvas.height);
-		// Draw descriptions
-		ctx.font = 'bold 20px Consolas';
-		ctx.fillStyle = '#232323';
-
-		// any valid ecg
-		if(displayType >= 0) {
-			// draw the limb leads
-			ctx.fillText(
-				displayOptions.derivationNames[0], 
-				variables.columns[0], 
-				variables.rowCenter[0] + displayOptions.textVerticalOffset
-			);
-
-			ctx.fillText(
-				displayOptions.derivationNames[1], 
-				variables.columns[0], 
-				variables.rowCenter[1] + displayOptions.textVerticalOffset
-			);
-
-			ctx.fillText(
-				displayOptions.derivationNames[2], 
-				variables.columns[0], 
-				variables.rowCenter[2] + displayOptions.textVerticalOffset
-			);
-
-			ctx.fillText(
-				displayOptions.derivationNames[3], 
-				variables.columns[0], 
-				variables.rowCenter[3] + displayOptions.textVerticalOffset
-			);
-
-			ctx.fillText(
-				displayOptions.derivationNames[4], 
-				variables.columns[0], 
-				variables.rowCenter[4] + displayOptions.textVerticalOffset
-			);
-
-			ctx.fillText(
-				displayOptions.derivationNames[5], 
-				variables.columns[0], 
-				variables.rowCenter[5] + displayOptions.textVerticalOffset
-			);
-
-
-			// if 12-lead, draw the V1-V6 too
-			if(displayType === 1) {
-				ctx.fillText(
-					displayOptions.derivationNames[6], 
-					variables.columns[1], 
-					variables.rowCenter[0] + displayOptions.textVerticalOffset
-				);
-
-				ctx.fillText(
-					displayOptions.derivationNames[7], 
-					variables.columns[1], 
-					variables.rowCenter[1] + displayOptions.textVerticalOffset
-				);
-
-				ctx.fillText(
-					displayOptions.derivationNames[8], 
-					variables.columns[1], 
-					variables.rowCenter[2] + displayOptions.textVerticalOffset
-				);
-
-				ctx.fillText(
-					displayOptions.derivationNames[9], 
-					variables.columns[1], 
-					variables.rowCenter[3] + displayOptions.textVerticalOffset
-				);
-
-				ctx.fillText(
-					displayOptions.derivationNames[10], 
-					variables.columns[1], 
-					variables.rowCenter[4] + displayOptions.textVerticalOffset
-				);
-
-				ctx.fillText(
-					displayOptions.derivationNames[11], 
-					variables.columns[1], 
-					variables.rowCenter[5] + displayOptions.textVerticalOffset
-				);
-
-			}
-		}
-	};
-
 	/**
-	 * Renders a new frame on the canvas, 
-	 * and calls itself again if active in state (isPlaying)
+	 * Renders a new frame
 	 */
 	renderFrame() {
-		let ctx = this.canvas.getContext('2d');
-		const displayType = this.ecgState.getState().statusBar.displayType;
-		const displayOptions = this.ecgState.getState().ecgDisplay;
-		const variables = this.ecgState.getState().ecgRuntimeVariables;
-		const rulerPosition = (this.frames % variables.derivationWidth) + displayOptions.horizontalPadding;
-		const deltaTime = (this.fps / 60) * this.ecgState._state.statusBar.speed;
-		this.time += deltaTime;
+		// Context
+		let ctx = this.ctx;
 
-
-		ctx.strokeStyle = '#565656';
-		ctx.lineCap = 'rounded';
+		// Define style
 		ctx.lineWidth = 1;
-		// Draw next pixel
-		// draw limb leads always
-		for(let col = 0; col <= ((displayType===1) ? 1 : 0); col++) {
+		ctx.strokeStyle = '#000000';
+		ctx.lineCap = 'rounded';
+
+		// Clear old frame
+		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		// Render all the values
+		// for each row and col (all derivations)
+		for(let col = 0; col <= 1; col++) {
 			for(let row = 0; row <= 5; row++) {
-				const oldY = this.currentValues[ 5*col + row ];
-				const newY = Math.sin(this.time/5000)*75;
+				// The values of the current derivation
+				const data = this.values[col * 6 + row];
+				const startX = this.variables.col[col];
+				const startY = this.variables.row[row] + this.variables.derivation.hHalf;
+
 				ctx.beginPath();
 				ctx.moveTo(
-					variables.columns[col] + rulerPosition - 1,
-					variables.rowCenter[ row ] + oldY
+					startX,
+					startY + data[0]
 				);
-				ctx.lineTo(
-					variables.columns[col] + rulerPosition - 2,
-					variables.rowCenter[ row ] + newY
-				);
+
+				// For each pixel
+				for(let x = 1; x < data.length; x++) {
+					ctx.lineTo(
+						startX + x,
+						startY + data[x]
+					);
+				}
+
 				ctx.stroke();
 				ctx.closePath();
-				this.currentValues[5*col + row] = newY;
+
 			}
 		}
 
-		// Calculate next position
-
-
-		// Clear with rulers
-
-		// Clear with first ruler
-		ctx.clearRect( 
-			variables.columns[0] + rulerPosition,
-			0,
-			displayOptions.rulerWidth,
-			this.canvas.height
-		);
-		// if there is a second column, draw that ruler too
-		if( displayType > 0) {
-			ctx.clearRect( 
-				variables.columns[1] + rulerPosition,
-				0,
-				displayOptions.rulerWidth,
-				this.canvas.height
-			);
+		for(let i =0; i < this.values.length; i++) {
+			// Set the new value
+			this.values[i][this.rulerPosition] = this.generator.getValue(i);
 		}
-		
+
+		// Draw (clear) both rulers
+		ctx.clearRect( this.variables.col[0] + this.rulerPosition, 0, this.state().ecgDisplay.rulerWidth, this.canvas.height );
+		ctx.clearRect( this.variables.col[1] + this.rulerPosition, 0, this.state().ecgDisplay.rulerWidth, this.canvas.height );
+
+		this.rulerPosition++;
+		this.rulerPosition %= this.variables.derivation.width;
 
 
-		if(!this.lastcalledtime) {
-			this.lastcalledtime = performance.now();
-			this.fps = 0;
-		}
-		this.deltaTime = (performance.now() - this.lastcalledtime)/1000;
-		this.lastcalledtime = performance.now();
-		this.fps = parseInt(1/this.deltaTime);
-		
-		this.frames++;
-		if(this.ecgState.getState().isPlaying) {
-			window.requestAnimationFrame( ()=>{
+		// If still running, request next frame
+		if(this.state().isPlaying) {
+			window.requestAnimationFrame(()=>{
 				this.renderFrame();
 			});
 		}
+
 	}
+
+	/**
+	 * Computes all variables needed to draw on the canvas
+	 * (for example, the positions of each derivation)
+	 */
+	computeVariables() {
+		let variables = {};
+
+		// Compute the width and height of a derivation
+		variables.derivation = {
+			width: parseInt( (this.canvas.width - 4 * this.state().ecgDisplay.horizontalMargin)/2 ),
+			height: parseInt( (this.canvas.height - 2 * this.state().ecgDisplay.verticalMargin)/6)
+		};
+		// Define hHalf
+		variables.derivation.hHalf = parseInt(variables.derivation.height/2);
+
+		// Define columns
+		variables.col = [
+			this.state().ecgDisplay.horizontalMargin,
+			this.state().ecgDisplay.horizontalMargin*3 + variables.derivation.width
+		];
+
+		// Define rows
+		variables.row = [];
+		for(let i =0; i <= 5; i++) {
+			variables.row.push( this.state().ecgDisplay.verticalMargin + i * variables.derivation.height );
+		}
+
+		// Define default values (0, for each derivation)
+		for(let i = 0; i < this.values.length; i++) {
+			for(let px = 0; px < variables.derivation.width; px++) {
+				this.values[i].push(0);
+			}
+		}
+
+		this.variables = variables;
+	}
+
+	/**
+	 * Development function to draw wireframes
+	 */
+	_renderWireFrames() {
+		let ctx = this.shadowCtx;
+
+		ctx.fillStyle = 'rgba(75, 241, 228, 0.2)';
+		// Draw boxes for the derivations
+		for(let col = 0; col <= 1; col++) {
+			for(let row = 0; row <= 5; row++) {
+				// draw the fields with a border
+				ctx.fillRect(
+					2 + (this.state().ecgDisplay.horizontalMargin + ((col===1) ? this.state().ecgDisplay.horizontalMargin*2+this.variables.derivation.width : 0)),
+					2 + (this.state().ecgDisplay.verticalMargin + row * this.variables.derivation.height),
+					this.variables.derivation.width-4,
+					this.variables.derivation.height-4
+				);
+			}
+		}
+	}
+
+	/**
+	 * Renders all persistent objects of the shadow canvas
+	 * for example Lead descriptions etc.
+	 */
+	renderPersistentObjects() {
+		// Draw derivation descriptions
+		//font-family: 'Space Mono', monospace;
+		let ctx = this.shadowCtx;
+
+		ctx.font = 'bold 15pt Space Mono, Monaco, Consolas';
+		ctx.fillStyle = '#000000';
+		ctx.textAlign = 'right';
+
+		// Draw titles of the derivations (I-III, aVL, aVR, aVL, V1-V6)
+		for(let col = 0; col <= 1; col++) {
+			for(let row = 0; row <= 5; row++) {
+				ctx.fillText(
+					this.state().ecgDisplay.derivationNames[6*col + row],
+					this.variables.col[col] - 5,
+					this.variables.row[row] + this.variables.derivation.hHalf
+				);
+			}
+		}
+
+
+	}
+
+
 
 }

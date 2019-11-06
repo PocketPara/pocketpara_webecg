@@ -10,6 +10,8 @@ export default class EcgPanel extends React.Component {
 	componentDidMount() {
 		this.renderEngine = new ECGRenderEngine(this.props.ecgState);
 	}
+
+
 	render() {
 		return <div>
 			<canvas className="mainCanvas" id="mainCanvas">

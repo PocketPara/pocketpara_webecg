@@ -12,14 +12,12 @@ const DefaultState = {
 			'V1', 'V2', 'V3', 'V4', 'V5', 'V6'
 		],
 		// Amount of pixels to have as margins
-		horizontalPadding: 50,
-		verticalPadding: 50,
+		horizontalMargin: 50,
+		verticalMargin: 50,
 		textVerticalOffset: -10,
 		// The width of the "clear" ruler
-		rulerWidth: 5
+		rulerWidth: 15
 	},
-	// Generated automatically
-	ecgRuntimeVariables: {},
 	/*
 	*		Status Bar (on the bottom)
 	*/
@@ -31,7 +29,7 @@ const DefaultState = {
 		// 1 -> 12-Channel ECG
 		displayType: 1,
 		// Speed in mm/sec
-		speed: 150
+		speed: 50
 	}
 };
 
@@ -58,6 +56,7 @@ export default class ECGState {
 	 */
 	subscribe( callback, filter = [], initialCall = false ) {
 		const id = 'es_' + Date.now();
+		filter = (typeof filter == 'string') ? [filter] : filter;
 
 		this._subscribers.push({
 			id: Date.now() + '_sub',
