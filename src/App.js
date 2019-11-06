@@ -1,26 +1,26 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import TopNav from './components/TopNav';
+import BottomNav from './components/BottomNav';
+import EcgPanel from './components/EcgPanel';
+import ECGState from './helpers/ECGState';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+
+  state = {
+    ecgState: new ECGState()
+  }
+
+  render() {
+    return <div>
+      <TopNav ecgState={this.state.ecgState} />
+      
+      <EcgPanel ecgState={this.state.ecgState} />
+
+      <BottomNav ecgState={this.state.ecgState} />
+    </div>;
+  }
+
+
 }
 
 export default App;

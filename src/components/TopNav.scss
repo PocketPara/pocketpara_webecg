@@ -1,0 +1,51 @@
+.topNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  margin: 0;
+  height: 50px;
+  background-color: #4285f4;
+  color: white;
+  padding: 0;
+}
+
+.topNavLogo {
+  height: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  display: inline-block;
+  margin: 0;
+}
+
+.topNavTitle {
+  font-weight: bold;
+  font-size: 18pt;
+  vertical-align: middle;
+  height: 100%;
+  top: 0;
+  display: inline-block;
+  padding: 0 0.5em 1em;
+  margin: 0;
+}
+
+.topNav .rightPart {
+  display: inline-block;
+  float: right;
+
+  button {
+    color: white;
+    border: none;
+    background-color: transparent;
+    display: inline-block;
+    top: 0;
+    margin: 0;
+		font-size: 28pt;
+		padding: 5px 10px 0 10px;
+		cursor: pointer;
+
+		&:hover {
+			color: #0062a8;
+		}
+  }
+}
