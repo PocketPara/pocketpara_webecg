@@ -48,9 +48,34 @@ const DefaultState = {
 			},
 			pWave: {
 				// 120ms duration
-				duration: ()=>{return time(120)},
+				duration: ()=>{return time(115)},
 				// https://www.desmos.com/calculator/lwfoprhudy
-				fnc: p => { return -2 * Math.pow( p - 0.5, 2) + 0.5 }
+				fnc: p => { return -0.25 * Math.pow( p - 0.5, 2) + 0.06 }
+			},
+			pqTime: {
+				// duration (minus pWave),
+				duration: ()=>{return time( 195 - 115)},
+				fnc: p => { return 0; }
+			},
+			qWave: {
+				duration: ()=>{return time(35)},
+				fnc: p => { return -0.08*p; }
+			},
+			rWave: {
+				duration: ()=>{return time(30)},
+				fnc: p => { return 0.5*p; }
+			},
+			sWave: {
+				duration: ()=>{return time(30)},
+				fnc: p => { return -0.4*p; }
+			},
+			stSegment: {
+				duration: ()=>{return time(120)},
+				fnc: p => { return 0; }
+			},
+			tWave: {
+				duration: ()=>{return time(125)},
+				fnc: p => { return -0.4 * Math.pow( p - 0.5, 2) + 0.08 }
 			}
 		}
 

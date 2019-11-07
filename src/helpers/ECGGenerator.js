@@ -63,23 +63,63 @@ export default class ECGGenerator {
 
 		// amplitude
 		const amp = this.state().ecgDisplay.defaultAmplitude || 75;
-		const timeMult = 0.1;
+		const timeMult = (this.state().statusBar.speed / 25)*0.02;
 
 		let value = 0;
 		// iso electric line
 		if(this.isActive[0]) {
 			 value = derivationCfg.iso.fnc( this.activePartCompletion );
 			 this.activePartCompletion += derivationCfg.iso.duration() * timeMult;
+
 		// p wave
 		} else if(this.isActive[1]) {
 			value = derivationCfg.pWave.fnc( this.activePartCompletion );
 			this.activePartCompletion += derivationCfg.pWave.duration() * timeMult;
-		} else {
+
+		// pq-segment
+		} else if(this.isActive[2]) {
+			value = derivationCfg.pqTime.fnc( this.activePartCompletion );
+			this.activePartCompletion += derivationCfg.pqTime.duration() * timeMult;
+
+		// q-Wave
+		} else if(this.isActive[3]) {
+			value = derivationCfg.qWave.fnc( this.activePartCompletion );
+			this.activePartCompletion += derivationCfg.qWave.duration() * timeMult;
+		
+
+		// r-Wave
+		} else if(this.isActive[4]) {
+			value = derivationCfg.rWave.fnc( this.activePartCompletion );
+			this.activePartCompletion += derivationCfg.rWave.duration() * timeMult;
+		 
+
+		// s-Wave
+		} else if(this.isActive[5]) {
+			value = derivationCfg.sWave.fnc( this.activePartCompletion );
+			this.activePartCompletion += derivationCfg.sWave.duration() * timeMult;
+		} 
+
+		// st-segment
+		else if(this.isActive[6]) {
+			value = derivationCfg.stSegment.fnc( this.activePartCompletion );
+			this.activePartCompletion += derivationCfg.stSegment.duration() * timeMult;
+		} 
+
+		// t-wave
+		else if(this.isActive[7]) {
+			value = derivationCfg.tWave.fnc( this.activePartCompletion );
+			this.activePartCompletion += derivationCfg.tWave.duration() * timeMult;
+		} 
+
+
+		else {
 			this.isActive = [true,false,false,false,false,false,false,false,false,false];
 			this.activePartCompletion = 0;
 		}
 		// negate value because coord system has the center on top, not bottom
-		return -value * amp;
+		const _ret = (this.previousValues[derivationIndex] -value) * amp;
+		this.previousValues[derivationIndex] = -value;
+		return _ret;
 	}
 
 	/**
