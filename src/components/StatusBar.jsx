@@ -136,14 +136,19 @@ export default class StatusBar extends React.Component {
 						<i className="fas fa-tachometer-alt" /> &nbsp;Speed: 50 mm/s
 					</div>
 					<div 
+							onClick={()=>{this.handleChangeSpeed(250)}}
+							className="option">
+						<i className="fas fa-tachometer-alt" /> &nbsp; <i>(dev) Speed: 250 mm/s</i>
+					</div>
+					<div 
 							onClick={()=>{
 								//this.handleChangeSpeed(50)
 								let input = prompt("Enter a speed (in mm/s)", this.state.speed);
 								if(isNaN(input)) {
 									alert("Enter a valid number and try again!");
 								} else {
-									if(input > 1500) {
-										alert("Please enter a value below 1500 mm/s.");
+									if(input > 1500 || input < 25) {
+										alert("Please enter a value between 25 and 1500 mm/s.");
 										return;
 									}
 									this.handleChangeSpeed(Math.abs(parseInt(input)));

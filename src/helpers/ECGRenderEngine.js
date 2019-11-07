@@ -108,8 +108,8 @@ export default class ECGRenderEngine {
 		}
 
 		// Draw (clear) both rulers
-		ctx.clearRect( this.variables.col[0] + this.rulerPosition-2, 0, this.state().ecgDisplay.rulerWidth, this.canvas.height );
-		ctx.clearRect( this.variables.col[1] + this.rulerPosition-2, 0, this.state().ecgDisplay.rulerWidth, this.canvas.height );
+		ctx.clearRect( this.variables.col[0] + this.rulerPosition+1, 0, this.state().ecgDisplay.rulerWidth, this.canvas.height );
+		ctx.clearRect( this.variables.col[1] + this.rulerPosition+1, 0, this.state().ecgDisplay.rulerWidth, this.canvas.height );
 
 		this.rulerPosition++;
 		this.rulerPosition %= this.variables.derivation.width;

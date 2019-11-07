@@ -1,10 +1,11 @@
 const DefaultState = {
 	_stateTimestamp: Date.now(),
-	/*
-	 *	ECG Data 
-	 */
+	// if animation is active
 	isPlaying: false,
 	fps: 0,
+	/**
+	 * ECG Displaying options
+	 */
 	ecgDisplay: {
 		derivationNames: [
 			'I',		'II',		'III',
@@ -16,7 +17,8 @@ const DefaultState = {
 		verticalMargin: 50,
 		textVerticalOffset: -10,
 		// The width of the "clear" ruler
-		rulerWidth: 15
+		rulerWidth: 15,
+		defaultAmplitude: 75
 	},
 	/*
 	*		Status Bar (on the bottom)
@@ -30,8 +32,41 @@ const DefaultState = {
 		displayType: 1,
 		// Speed in mm/sec
 		speed: 50
-	}
+	},
+	/**
+	 * The ecg derivation configurations
+	 */
+	ecgConfig: [
+
+		{
+			// Todo: onComplete method?
+			// The iso-electric lines between beats
+			iso: {
+				// duration of this component ( timeInc(ms) to set in milliseconds)
+				duration: ()=>{return time(Math.random() * 4000)}, 
+				fnc: p => {return 0;}
+			},
+			pWave: {
+				// 120ms duration
+				duration: ()=>{return time(120)},
+				// https://www.desmos.com/calculator/lwfoprhudy
+				fnc: p => { return -2 * Math.pow( p - 0.5, 2) + 0.5 }
+			}
+		}
+
+	]
 };
+/**
+ * Returns the amount of frames that equals a duration in ms
+ * 
+ * @param {number} milliseconds The time in milliseconds
+ */
+export function time( milliseconds ) {
+	const fps = 60; // TODO: load
+	const frameMs = Math.round((1000 / fps)*100)/100;
+	const time = Math.round( (frameMs / milliseconds) * 100)/100;
+	return (time > 0.000000) ? time : 0.001;
+}
 
 /**
  * Main state handler for the ecg itself
